@@ -36,8 +36,9 @@ namespace Supahunt
                 return false;                
             }
 
-            Console.WriteLine($"Yeah! you got one :-).{BoresLeft} bores left.  ");
             _boresHunted++;
+            Console.WriteLine($"Yeah! you got one :-).{BoresLeft} bores left.  ");
+            
             return true;
         }
     }

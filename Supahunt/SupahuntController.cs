@@ -61,10 +61,7 @@ namespace Supahunt
             SupahuntView.NewLine();
             Console.WriteLine($"{Players[playerIndex].Name} ! your turn .. ");
             SupahuntView.PageBreak();
-            player =Players[playerIndex];
-
-            if (player.IsDone)
-                NextPlayer();
+            player =Players[playerIndex];           
         }
 
 
@@ -94,9 +91,15 @@ namespace Supahunt
             foreach (var p in Players)
             {
                 p.SetHuntingPoint(_huntingMap.GetStartPoint());
+                p.GetChoopa += P_GetChoopa;
                 SupahuntView.NewLine();
             }
             NextPlayer();
+        }
+
+        private void P_GetChoopa()
+        {
+            ExecuteAction(SupahuntView.ActionMenu.Exit);
         }
 
         /// <summary>
@@ -105,11 +108,6 @@ namespace Supahunt
         /// <param name="action">action to be executed</param>
         public void ExecuteAction(Supahunt.SupahuntView.ActionMenu action)
         {
-            if (CheckforChoopa())
-            {
-                action = Supahunt.SupahuntView.ActionMenu.Exit;
-            }
-
             switch (action)
             {
                 case SupahuntView.ActionMenu.Hunt:
@@ -134,6 +132,7 @@ namespace Supahunt
                         p.ShowStats();
                     }
                     Console.WriteLine("It was fun . see you next time ........");
+                    Console.Read();
                     exitGame = true;
                     break;
                 default:
@@ -143,17 +142,7 @@ namespace Supahunt
             }
         }
 
-        private bool CheckforChoopa()
-        {
-
-            foreach (var p in players)
-            {
-                if (p.IsDone == false)
-                    return false;
-            }
-            Console.WriteLine("You got choopa");
-            return true;
-        }
+      
 
         #region Actions
 
@@ -183,6 +172,8 @@ namespace Supahunt
                 player.SetHuntingPoint(_huntingMap.GetHuntingPoint(huntPoint));
                 SupahuntView.PageBreak();
                 SupahuntView.NewLine();
+                player.ShowStats();
+
                 NextPlayer();
             }
             else if (player.CurrentHuntingPoint.IsLast)
@@ -193,6 +184,8 @@ namespace Supahunt
             {
                 Console.WriteLine($"Opps! {player.Name} wrong move .Try again or refer map");
             }
+
+
 
         }
 
@@ -206,17 +199,15 @@ namespace Supahunt
                 Console.Write("you have enough stamina to hunt or move. Do you still want to rest ? [y for yes or n for no]:");
                 var ans = Console.ReadLine();
 
-                if (ans == "y")
+                if (ans == "n")
                 {
-                    player.Rest();
-                    NextPlayer();
+                    return;
                 }
             }
-            else
-            {
-                player.Rest();
-                NextPlayer();
-            }
+            
+            player.Rest();
+            NextPlayer();
+            
         }
 
         /// <summary>
@@ -224,8 +215,10 @@ namespace Supahunt
         /// </summary>
         private void ActionHunt()
         {
+            // if player hunted sucessfully then move to next player
             if (player.Hunt())
             {
+                player.ShowStats();
                 NextPlayer();
             }
         }

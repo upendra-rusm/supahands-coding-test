@@ -12,6 +12,11 @@ namespace Supahunt
     /// </summary>
     public class Player
     {
+
+        public delegate void ChoopaHandler();
+
+        public event ChoopaHandler GetChoopa;
+
         public static List<string> defaultNames = new List<string>() { "Dutch", "Dylan" };
         List<HuntingLog> _huntingLogs = new List<HuntingLog>();
 
@@ -23,10 +28,6 @@ namespace Supahunt
         public int Stamina { get; set; } = 3;
         public int NoofBores { get; set; }
 
-        public bool IsDone = false;
-
-        public bool IsResting = false;
-
         HuntingPoint _huntingPoint = null;
 
         public HuntingPoint CurrentHuntingPoint { get => _huntingPoint; }
@@ -37,6 +38,8 @@ namespace Supahunt
         /// </summary>
         public void Rest()
         {
+
+           
             // if stamina is 3 then return as stamina cannot be more then 3
             if (Stamina == 3)
             {
@@ -48,10 +51,7 @@ namespace Supahunt
             Stamina += 2;
 
             if (Stamina > 3)
-                Stamina=3;         
-           
-            IsResting = true;
-            
+                Stamina=3; 
         }
 
         /// <summary>
@@ -59,24 +59,34 @@ namespace Supahunt
         /// </summary>
         /// <returns></returns>
         public bool Hunt()
-        { 
-            // check if hunt was sucess at hunting point 
-            if(_huntingPoint.IsHuntSuccess())
+        {
+            // check stamina and if hunt was sucess at hunting point                     
+
+            if(hasStamina() && _huntingPoint.IsHuntSuccess())
             {
+                if (_huntingPoint.IsLast && _huntingPoint.BoresLeft == 0)
+                {
+                    GetChoopa();
+                }
                 // decrease stamina by 1 
-                Stamina-= 1;
+                Stamina -= 1;
                 // add bore to hunt count
                 NoofBores++;
                 return true;
-            }
+            }          
 
-            if (_huntingPoint.IsLast && _huntingPoint.BoresLeft==0)
+            return false;
+        }
+
+        private bool hasStamina()
+        {
+            if (Stamina < 1)
             {
-                IsDone = true;
+                Console.WriteLine("you have do not have enough stamina");
                 return false;
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -85,15 +95,22 @@ namespace Supahunt
         /// <param name="huntingPoint"></param>
         public void SetHuntingPoint(HuntingPoint huntingPoint)
         {
-            _huntingPoint = huntingPoint;
-            // add new hunting point to log
-            _huntingLogs.Add(new HuntingLog { NodeName = CurrentHuntingPoint.Vertex, HuntingCount = 1 });
             //decrease 1 stamina
-            Stamina -= 1;
-            Console.Write($"=> {Name} move to {_huntingPoint.Vertex} *");
+
+            if (hasStamina())
+            {
+                if (_huntingPoint != null)
+                    Stamina -= 1;
+
+                _huntingPoint = huntingPoint;
+                // add new hunting point to log
+                _huntingLogs.Add(new HuntingLog { NodeName = CurrentHuntingPoint.Vertex, HuntingCount = 1 });
+
+                Console.Write($"=> {Name} move to {_huntingPoint.Vertex} *");
+            }
         }
 
-
+       
         /// <summary>
         /// show current location of player
         /// </summary>
@@ -107,7 +124,7 @@ namespace Supahunt
         /// show stats of player
         /// </summary>
         public void ShowStats()
-        {
+        {           
             Console.WriteLine($"Name    : {Name}");
             Console.WriteLine($"Stamina : {Stamina}");
             Console.WriteLine($"Bores Hunted : {NoofBores}");
